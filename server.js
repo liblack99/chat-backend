@@ -10,8 +10,14 @@ const chatRoutes = require("./routes/chat");
 
 dotenv.config();
 
+const corsOptions = {
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
 const app = express();
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Rutas de la API
@@ -55,7 +61,6 @@ io.use((socket, next) => {
   });
 });
 
-// Manejando eventos de conexión
 io.on("connection", (socket) => {
   const userId = socket.user.userId.toString();
   console.log(`Usuario conectado: ${userId}`);
