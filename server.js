@@ -86,8 +86,6 @@ io.on("connection", (socket) => {
         [userId, receiverId, receiverId, userId]
       );
 
-      console.log("Resultado de amistad:", friendship);
-
       if (friendship.length === 0) {
         socket.emit(
           "error",
@@ -103,7 +101,13 @@ io.on("connection", (socket) => {
         [userId, receiverId, content]
       );
 
-      console.log("Mensaje insertado, resultado:", result);
+      const isReceiverConnected = io.sockets.adapter.rooms.has(
+        receiverId.toString()
+      );
+
+      if (isReceiverConnected) {
+        io.to(receiverId).emit("receiveMessage", message);
+      }
 
       const message = result[0]; // El primer mensaje insertado
 
