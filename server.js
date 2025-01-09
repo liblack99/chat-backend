@@ -100,6 +100,7 @@ io.on("connection", (socket) => {
         "INSERT INTO messages (sender_id, receiver_id, content, created_at, delivered) VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0) RETURNING *",
         [userId, receiverId, content]
       );
+      const message = result[0]; // El primer mensaje insertado
 
       const isReceiverConnected = io.sockets.adapter.rooms.has(
         receiverId.toString()
@@ -108,8 +109,6 @@ io.on("connection", (socket) => {
       if (isReceiverConnected) {
         io.to(receiverId).emit("receiveMessage", message);
       }
-
-      const message = result[0]; // El primer mensaje insertado
 
       socket.emit("messageSent", message);
     } catch (err) {
