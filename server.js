@@ -7,6 +7,7 @@ const db = require("./config/database");
 const authRoutes = require("./routes/auth");
 const friendsRoutes = require("./routes/friends");
 const chatRoutes = require("./routes/chat");
+const {getPendingRequests} = require("./controllers/friendsController");
 
 dotenv.config();
 
@@ -114,6 +115,27 @@ io.on("connection", (socket) => {
     } catch (err) {
       console.error("Error al enviar el mensaje:", err.message);
       socket.emit("error", "No se pudo enviar el mensaje.");
+    }
+  });
+
+  socket.on("getPendingRequests", async () => {
+    try {
+      const results = await db.execute(
+        `SELECT f.id, f.user_id, u.username, u.profileImage 
+        FROM friendships f 
+        JOIN users u ON u.id = f.user_id
+        WHERE f.friend_id = ? AND f.status = 'pending'`,
+        [userId]
+      );
+      if (results.rows.length === 0) {
+        return socket.emit("error", {message: "No hay solicitudes pendientes"});
+      }
+
+      const pendingRequests = results.rows;
+      socket.emit("pendingRequests", pendingRequests);
+    } catch (error) {
+      console.error("Error fetching pending requests:", error);
+      res.emit("Error fetching pending requests");
     }
   });
 
