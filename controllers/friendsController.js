@@ -19,12 +19,7 @@ exports.getFriends = async (req, res) => {
          WHERE f.friend_id = ? AND f.status = 'accepted'`,
       [user_id, user_id]
     );
-    if (results.rows.length === 0) {
-      return res.status(400).send("el usuario no tiene amigos");
-    }
-
-    const friends = results.rows;
-
+    const friends = results.rows.length > 0 ? results.rows : [];
     res.status(200).json(friends);
   } catch (error) {
     console.error("Error fetching friends:", error);
