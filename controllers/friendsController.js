@@ -63,7 +63,7 @@ exports.getPendingRequests = async (req, res) => {
       [user_id]
     );
     if (results.rows.length === 0) {
-      return res.status(400).send("No hay solicitudes pendientes");
+      return res.status(200).send([]);
     }
 
     const pendingRequests = results.rows;
@@ -124,8 +124,6 @@ exports.acceptFriendRequest = async (req, res) => {
 exports.sendFriendRequest = async (req, res) => {
   const {user_id, friend_id} = req.body;
 
-  console.log("Received user_id:", user_id, "Received friend_id:", friend_id);
-
   // Validar que los IDs sean válidos
   if (!user_id || !friend_id) {
     return res
@@ -140,13 +138,10 @@ exports.sendFriendRequest = async (req, res) => {
   }
 
   try {
-    // Comprobar si ya existe una relación de amistad o una solicitud previa
     const existingFriendship = await db.execute(
       "SELECT * FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)",
       [user_id, friend_id, friend_id, user_id]
     );
-
-    console.log("Existing friendship check:", existingFriendship);
 
     // Si existe una relación previa, revisar el estado
     if (existingFriendship.rows.length > 0) {
@@ -177,7 +172,7 @@ exports.sendFriendRequest = async (req, res) => {
     }
 
     // Crear una nueva solicitud de amistad si no existe relación previa
-    console.log("Creating new friend request...");
+
     await db.execute(
       "INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)",
       [user_id, friend_id]

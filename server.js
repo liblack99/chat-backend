@@ -114,24 +114,74 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("getPendingRequests", async () => {
+  socket.on("sendFriendRequest", async (friend_id) => {
+    if (!userId || !friend_id) {
+      return socket.emit("error", "user_id and friend_id are required.");
+    }
+
+    if (userId === friend_id) {
+      return socket.emit("error", "Cannot send a friend request to yourself.");
+    }
+
     try {
-      const results = await db.execute(
+      const existingFriendship = await db.execute(
+        "SELECT * FROM friendships WHERE (user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?)",
+        [userId, friend_id, friend_id, userId]
+      );
+
+      if (existingFriendship.rows.length > 0) {
+        const {id, status} = existingFriendship.rows[0];
+
+        if (status === "accepted") {
+          return socket.emit(
+            "error",
+            "You are already friends with this user."
+          );
+        }
+
+        if (status === "pending") {
+          return socket.emit("error", "Friend request is already pending.");
+        }
+
+        if (status === "rejected") {
+          console.log("Resending friend request for rejected status...");
+          await db.execute(
+            "UPDATE friendships SET status = 'pending' WHERE id = ?",
+            [id]
+          );
+
+          return socket.emit("success", "Friend request resent.");
+        }
+      }
+
+      await db.execute(
+        "INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)",
+        [userId, friend_id]
+      );
+
+      const {rows: result} = await db.execute(
         `SELECT f.id, f.user_id, u.username, u.profileImage 
         FROM friendships f 
         JOIN users u ON u.id = f.user_id
         WHERE f.friend_id = ? AND f.status = 'pending'`,
         [userId]
       );
-      if (results.rows.length === 0) {
-        return socket.emit("error", {message: "No hay solicitudes pendientes"});
-      }
 
-      const pendingRequests = results.rows;
-      socket.emit("pendingRequests", pendingRequests);
+      const pendingRequests = result[0];
+
+      const isReceiverConnected = io.sockets.adapter.rooms.has(
+        friend_id.toString()
+      );
+
+      if (isReceiverConnected) {
+        io.to(friend_id).emit("pendingRequest", pendingRequests);
+      }
     } catch (error) {
-      console.error("Error fetching pending requests:", error);
-      res.emit("Error fetching pending requests");
+      console.error("Error sending friend request:", error);
+      return socket.emit(
+        "error",
+        "Error sending friend request: " + error.message
+      );
     }
   });
 
