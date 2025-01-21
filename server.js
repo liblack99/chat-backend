@@ -153,33 +153,32 @@ io.on("connection", (socket) => {
           return socket.emit("success", "Friend request resent.");
         }
       }
+      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
       const insertResult = await db.execute(
         "INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)",
         [userId, friend_id]
       );
 
-      if (insertResult.changes > 0) {
-        const result = await db.execute(
-          `SELECT f.id, f.user_id, u.username, u.profileImage 
+      await delay(500);
+
+      const result = await db.execute(
+        `SELECT f.id, f.user_id, u.username, u.profileImage 
         FROM friendships f 
         JOIN users u ON u.id = f.user_id
         WHERE f.friend_id = ? AND f.status = 'pending'`,
-          [userId]
-        );
-        const pendingRequests = result.rows;
+        [userId]
+      );
+      const pendingRequests = result.rows;
 
-        console.log("solicitudes pendientes", pendingRequests);
+      console.log("solicitudes pendientes", pendingRequests);
 
-        const isReceiverConnected = io.sockets.adapter.rooms.has(
-          friend_id.toString()
-        );
+      const isReceiverConnected = io.sockets.adapter.rooms.has(
+        friend_id.toString()
+      );
 
-        if (isReceiverConnected) {
-          io.to(friend_id).emit("pendingRequest", pendingRequests);
-        }
-      } else {
-        console.log("Insertion failed");
+      if (isReceiverConnected) {
+        io.to(friend_id).emit("pendingRequest", pendingRequests);
       }
     } catch (error) {
       console.error("Error sending friend request:", error);
