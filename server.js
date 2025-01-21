@@ -153,14 +153,13 @@ io.on("connection", (socket) => {
           return socket.emit("success", "Friend request resent.");
         }
       }
-      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      await db.execute(
+      const insertResult = await db.execute(
         "INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)",
         [userId, friend_id]
       );
 
-      await delay(1000);
+      console.log("insetResult", insertResult);
 
       const result = await db.execute(
         `SELECT f.id, f.user_id, u.username, u.profileImage 
