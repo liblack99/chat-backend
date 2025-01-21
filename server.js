@@ -155,12 +155,12 @@ io.on("connection", (socket) => {
       }
       const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      const insertResult = await db.execute(
+      await db.execute(
         "INSERT INTO friendships (user_id, friend_id, status, created_at) VALUES (?, ?, 'pending', CURRENT_TIMESTAMP)",
         [userId, friend_id]
       );
 
-      await delay(500);
+      await delay(1000);
 
       const result = await db.execute(
         `SELECT f.id, f.user_id, u.username, u.profileImage 
