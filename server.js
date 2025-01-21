@@ -167,7 +167,7 @@ io.on("connection", (socket) => {
           FROM friendships f 
           JOIN users u ON u.id = f.user_id
           WHERE f.friend_id = ? AND f.status = 'pending'`,
-          [userId]
+          [friend_id]
         );
         const pendingRequests = result.rows;
         console.log("solicitudes pendientes", pendingRequests);
