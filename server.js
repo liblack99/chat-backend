@@ -159,7 +159,7 @@ io.on("connection", (socket) => {
         [userId, friend_id]
       );
 
-      const {rows: result} = await db.execute(
+      const result = await db.execute(
         `SELECT f.id, f.user_id, u.username, u.profileImage 
         FROM friendships f 
         JOIN users u ON u.id = f.user_id
@@ -167,7 +167,7 @@ io.on("connection", (socket) => {
         [userId]
       );
 
-      const pendingRequests = result[0];
+      const pendingRequests = result.rows;
 
       console.log("solicitudes pendientes", pendingRequests);
 
