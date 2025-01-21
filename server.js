@@ -161,23 +161,26 @@ io.on("connection", (socket) => {
 
       console.log("insetResult", insertResult);
 
-      const result = await db.execute(
-        `SELECT f.id, f.user_id, u.username, u.profileImage 
-        FROM friendships f 
-        JOIN users u ON u.id = f.user_id
-        WHERE f.friend_id = ? AND f.status = 'pending'`,
-        [userId]
-      );
-      const pendingRequests = result.rows;
+      if (insertResult.rowsAffected >= 1) {
+        const result = await db.execute(
+          `SELECT f.id, f.user_id, u.username, u.profileImage 
+          FROM friendships f 
+          JOIN users u ON u.id = f.user_id
+          WHERE f.friend_id = ? AND f.status = 'pending'`,
+          [userId]
+        );
+        const pendingRequests = result.rows;
+        console.log("solicitudes pendientes", pendingRequests);
 
-      console.log("solicitudes pendientes", pendingRequests);
+        const isReceiverConnected = io.sockets.adapter.rooms.has(
+          friend_id.toString()
+        );
 
-      const isReceiverConnected = io.sockets.adapter.rooms.has(
-        friend_id.toString()
-      );
-
-      if (isReceiverConnected) {
-        io.to(friend_id).emit("pendingRequest", pendingRequests);
+        if (isReceiverConnected) {
+          io.to(friend_id).emit("pendingRequest", pendingRequests);
+        }
+      } else {
+        console.log("fallo consulta");
       }
     } catch (error) {
       console.error("Error sending friend request:", error);
