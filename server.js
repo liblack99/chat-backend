@@ -169,6 +169,8 @@ io.on("connection", (socket) => {
 
       const pendingRequests = result[0];
 
+      console.log("solicitudes pendientes", pendingRequests);
+
       const isReceiverConnected = io.sockets.adapter.rooms.has(
         friend_id.toString()
       );
