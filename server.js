@@ -176,6 +176,8 @@ io.on("connection", (socket) => {
           friend_id.toString()
         );
 
+        console.log("fue resivido", isReceiverConnected);
+
         if (isReceiverConnected) {
           io.to(friend_id).emit("pendingRequest", pendingRequests);
         }
