@@ -40,12 +40,7 @@ exports.searchUsers = async (req, res) => {
       [`%${query}%`, `%${query}%`]
     );
 
-    if (users.rows.length === 0) {
-      return res.status(404).json({message: "No se encontraron usuarios."});
-    }
-
-    // Retornar los usuarios encontrados
-    return res.status(200).json(users.rows); // Se usa `rows` porque es el formato adecuado para Turso
+    return res.status(200).json(users.rows.length > 0 ? users.rows : []);
   } catch (error) {
     console.error("Error searching users:", error);
     return res

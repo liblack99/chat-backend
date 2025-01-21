@@ -109,3 +109,56 @@ exports.getUserData = async (req, res) => {
     });
   }
 };
+
+exports.updateUser = async (req, res) => {
+  const userId = req.userId; // Obtén el userId desde el middleware
+  const {fullName, email, profileImage, currentPassword, newPassword} =
+    req.body;
+
+  try {
+    // Validar si el usuario existe
+    const userResult = await db.execute("SELECT * FROM users WHERE id = ?", [
+      userId,
+    ]);
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({message: "Usuario no encontrado"});
+    }
+
+    const user = userResult.rows[0];
+
+    // Actualizar la contraseña si se proporciona
+    let updatedPassword = user.password; // Mantener la contraseña actual por defecto
+    if (newPassword) {
+      // Verificar la contraseña actual
+      if (!bcrypt.compareSync(currentPassword, user.password)) {
+        return res.status(400).json({message: "Contraseña actual incorrecta"});
+      }
+
+      // Cifrar la nueva contraseña
+      updatedPassword = bcrypt.hashSync(newPassword, 10);
+    }
+
+    // Actualizar los demás campos
+    await db.execute(
+      `UPDATE users 
+       SET username = ?, email = ?, profileImage = ?, password = ? 
+       WHERE id = ?`,
+      [
+        fullName || user.username,
+        email || user.email,
+        profileImage || user.profileImage,
+        updatedPassword,
+        userId,
+      ]
+    );
+
+    res.status(200).json({message: "Datos actualizados exitosamente"});
+  } catch (error) {
+    console.error("Error al actualizar los datos del usuario:", error);
+    res.status(500).json({
+      message: "Error al actualizar los datos del usuario",
+      error: error.message,
+    });
+  }
+};

@@ -68,8 +68,6 @@ io.on("connection", (socket) => {
 
   socket.join(userId);
 
-  const totalConectados = io.engine.clientsCount;
-
   // Verificar la conexión del usuario
   socket.on("checkUserConnection", (targetUserId) => {
     const isConnected = io.sockets.adapter.rooms.has(targetUserId.toString());
@@ -95,8 +93,6 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // Insertar el mensaje y devolverlo con RETURNING
-      console.log("Insertando mensaje...");
       const {rows: result} = await db.execute(
         "INSERT INTO messages (sender_id, receiver_id, content, created_at, delivered) VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0) RETURNING *",
         [userId, receiverId, content]

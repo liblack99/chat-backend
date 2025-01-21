@@ -58,8 +58,6 @@ exports.markMessagesAsDelivered = async (req, res) => {
     const userId = req.userId; // Usuario autenticado desde el middleware
     const {senderId} = req.body; // ID del remitente desde el cuerpo de la solicitud
 
-    console.log("userId mark:", userId);
-    console.log("senderId mark:", senderId);
     if (!senderId) {
       return res
         .status(400)
