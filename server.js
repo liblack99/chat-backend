@@ -97,14 +97,14 @@ io.on("connection", (socket) => {
         "INSERT INTO messages (sender_id, receiver_id, content, created_at, delivered) VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0) RETURNING *",
         [userId, receiverId, content]
       );
-      const message = result[0]; // El primer mensaje insertado
+      const message = result[0];
 
       const isReceiverConnected = io.sockets.adapter.rooms.has(
         receiverId.toString()
       );
 
       if (isReceiverConnected) {
-        io.to(receiverId).emit("receiveMessage", message);
+        io.to(receiverId.toString()).emit("receiveMessage", message);
       }
 
       socket.emit("messageSent", message);
@@ -163,7 +163,7 @@ io.on("connection", (socket) => {
           `Notificando a ${friend_id} con solicitudes pendientes`,
           pendingRequests
         );
-      io.to(friend_id).emit("request", pendingRequests);
+      io.to(friend_id.toString()).emit("request", pendingRequests);
 
       socket.emit("success", "Friend request sent.");
     } catch (error) {
