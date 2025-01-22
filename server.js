@@ -159,7 +159,11 @@ io.on("connection", (socket) => {
         friend_id.toString()
       );
       if (isReceiverConnected)
-        io.to(friend_id).emit("request", pendingRequests);
+        console.log(
+          `Notificando a ${friend_id} con solicitudes pendientes`,
+          pendingRequests
+        );
+      io.to(friend_id).emit("request", pendingRequests);
 
       socket.emit("success", "Friend request sent.");
     } catch (error) {
