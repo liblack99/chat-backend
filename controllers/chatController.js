@@ -15,9 +15,7 @@ exports.getLastMessage = async (req, res) => {
     );
 
     if (messages.rows.length === 0) {
-      return res
-        .status(200)
-        .json({message: "No hay mensajes entre estos usuarios."});
+      return res.status(200).json([]);
     }
 
     return res.status(200).json(messages.rows[0]);
