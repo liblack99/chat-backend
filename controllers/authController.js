@@ -152,8 +152,13 @@ exports.updateUser = async (req, res) => {
         userId,
       ]
     );
+    const updatedUserResult = await db.execute(
+      "SELECT id, username, email, profileImage FROM users WHERE id = ?",
+      [userId]
+    );
+    const updatedUser = updatedUserResult.rows[0];
 
-    res.status(200).json({message: "Datos actualizados exitosamente"});
+    res.status(200).json(updatedUser);
   } catch (error) {
     console.error("Error al actualizar los datos del usuario:", error);
     res.status(500).json({
